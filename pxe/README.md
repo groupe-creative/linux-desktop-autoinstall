@@ -2,25 +2,47 @@
 
 ## Prérequis
 
-Les fichiers présents dans le répertoire "pxe" sont à déposer sur un serveur web. 
+Les fichiers présents dans le répertoire "pxe" sont à déposer sur un serveur web (sur le serveur FOG dans notre cas). 
 
-Dans notre cas, on dépose ces fichiers directement sur notre serveur FOG (qui dispose d'un service Web).
+Dans notre cas, 
 
 ## Le répertoire "autoinstall" 
 
-Il contient les fichiers PXE qui permettent d'automatiser l'installation du système d'exploitation
+Le répertoire "autoinstall" contient les fichiers PXE qui permettent d'automatiser l'installation du système d'exploitation
 
 Pour plus d'informations sur le fichier "user-data" > https://ubuntu.com/server/docs/install/autoinstall-reference
+
+Il suffit de déposer le répertoire [/autoinstall/](./autoinstall/) dans le répertoire /var/www/html/ de notre serveur FOG.
+
+Ces fichiers sont donc ensuite accessibles via une URL du type http://pxe-ubuntu/autoinstall/ubuntu/
+
+* Notes *
 
 Pour vérifier le bon format d'un fichier "user-data"
 
 ```
+# Via cloud-init
 sudo cloud-init devel schema --config-file autoinstall/ubuntu/user-data
+
+# Via docker
+./platforms/ci/check.sh
 ```
 
 ## Le fichier "finish-install-setup.sh"
 
-Il sera placé sur le Bureau de l'utilisateur ubuntu par défaut, il permettra de terminer la configuration du poste (certificat, outils par défaut, tunning, etc)
+Le fichier "finish-install-setup.sh" sera placé sur le Bureau de l'utilisateur ubuntu par défaut, il permettra de terminer la configuration du poste (certificat, outils par défaut, tunning, etc)
+
+Dans les grandes lignes, ce fichier:
+* Permet de renseigner le nom de la machine
+* Télécharge le projet Git "linux-desktop-autoinstall" (le repo dans lequel vous êtes actuellement)
+* Lance le playbook Ansible présent dans le répertoire "[../ansible-playbook/](../ansible-playbook/)"
+
+Le fichier "finish-install-setup.sh" est téléchargé et placé sur le bureau de l'utilisateur par défaut à la fin de l'étape d'installation (se référer au fichier "[user-data](./autoinstall/ubuntu/user-data)")
+
+Dans notre cas, nous avons déposé au préalable le fichier "finish-install-setup.sh" dans le répertoire /var/www/html/ de notre serveur FOG.
+
+Ce fichier est donc ensuite accessibles via une URL du type http://pxe-ubuntu/finish-install-setup.sh
+
 
 ## Préparation du Boot PXE
 
