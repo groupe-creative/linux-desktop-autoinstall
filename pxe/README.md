@@ -1,12 +1,14 @@
-# linux-desktop-autoinstall/pxe
+# Linux Desktop Auto Install - PXE
 
 ## Prérequis
 
-Les fichiers présents dans le répertoire "pxe" sont à déposer sur un serveur web (sur le serveur FOG dans notre cas). 
+Avant de commencer à préparer les fichiers nécessaires à l'installation automatisée d'Ubuntu il est nécessaire d'avoir un service PXE opérationnel (d'être capable de démarrer un poste via le réseau et d'arriver sur le service PXE)
 
-Dans notre cas, 
+Un moyen simple d'avoir un service PXE rapidement en place est d'installer "FOG" 
 
-## Le répertoire "autoinstall" 
+## Le contenu de ce répertoire "pxe"
+
+### Le répertoire "autoinstall" 
 
 Le répertoire "autoinstall" contient les fichiers PXE qui permettent d'automatiser l'installation du système d'exploitation
 
@@ -16,7 +18,7 @@ Il suffit de déposer le répertoire [/autoinstall/](./autoinstall/) dans le ré
 
 Ces fichiers sont donc ensuite accessibles via une URL du type http://pxe-ubuntu/autoinstall/ubuntu/
 
-* Notes *
+/!\ Notes /!\
 
 Pour vérifier le bon format d'un fichier "user-data"
 
@@ -28,7 +30,7 @@ sudo cloud-init devel schema --config-file autoinstall/ubuntu/user-data
 ./platforms/ci/check.sh
 ```
 
-## Le fichier "finish-install-setup.sh"
+### Le fichier "finish-install-setup.sh"
 
 Le fichier "finish-install-setup.sh" sera placé sur le Bureau de l'utilisateur ubuntu par défaut, il permettra de terminer la configuration du poste (certificat, outils par défaut, tunning, etc)
 

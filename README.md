@@ -1,4 +1,4 @@
-# Linux Desktop Autoinstall
+# Linux Desktop Auto Install
 
 Ce projet contient les éléments nécessaires pour automatiser l'installation d'Ubuntu Desktop en entreprise.
 
