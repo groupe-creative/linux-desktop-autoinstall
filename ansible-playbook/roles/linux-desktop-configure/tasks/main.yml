@@ -1,0 +1,119 @@
+---
+# ########################################
+#  Création de répertoire
+# ########################################
+- name: Create a directory if it does not exist
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0777'
+  with_items:
+    - /tmp/install
+    - /usr/local/lib/docker/cli-plugins
+    - /etc/skel/Bureau/
+    - /root/gpo/
+    - /root/gpo/logs/
+
+# ########################################
+#  Language FR - Install
+# ########################################
+- name: Language FR - Check Packages
+  command: "check-language-support -l fr"
+  register: language_packages_list
+
+- debug:
+    msg: "{{ language_packages_list }}"
+
+- name: Language FR - Install Packages
+  package: name={{ item }} state=latest
+  with_items:
+    - "{{ language_packages_list.stdout.split() }}"
+
+# ########################################
+#  GPO System - Check
+# ########################################
+- name: GPO System - Check
+  stat:
+    path: /root/gpo/linux-gpo
+  register: linux_gpo_folder_result
+
+# ########################################
+#  GPO System - Download (if need)
+# ########################################
+- name: GPO System - Download (if need)
+  git:
+    repo: "{{ linux_gpo_git_url }}"
+    dest: /root/gpo/linux-gpo
+    version: main
+    clone: yes
+    update: yes
+  when: not linux_gpo_folder_result.stat.exists
+
+# ########################################
+#  GPO System - Install
+# ########################################
+- name: GPO System - Install
+  command: "{{ item }}"
+  with_items:
+    - /root/gpo/linux-gpo/gpo-update.sh
+    - /root/gpo/linux-gpo/gpo-apply.sh
+
+# ########################################
+#  GPO System - Cron Purge Logs
+# ########################################
+- name: GPO System - Cron Purge Logs
+  cron:
+    name: "GPO System - Cron Purge Logs"
+    minute: "0"
+    hour: "10"
+    job: "find /root/gpo/logs/ -name '*.log' -type f -mtime +15 -delete 2> /dev/null"
+
+# ########################################
+#  Désactivation de la demande de mot passe administrateur
+# ########################################
+- name: Désactivation de la demande de mot passe administrateur
+  template: src=disable-passwords.pkla dest=/var/lib/polkit-1/localauthority/50-local.d/disable-passwords.pkla owner=root mode=0644
+
+# ########################################
+#  Fix DNS via VPN
+# ########################################
+- name: Fix DNS via VPN
+  template: src=resolved.conf dest=/etc/systemd/resolved.conf owner=root mode=0644
+
+# ########################################
+#  Change default wallpaper
+# ########################################
+- name: Change default wallpaper
+  copy:
+    src: "{{ role_path }}/files/wallpaper_ubuntu.jpg"
+    dest: /usr/share/backgrounds/warty-final-ubuntu.png
+    owner: root
+    group: root
+    mode: '0644'
+
+# ########################################
+#  Ajout du fichier de conf VPN
+# ########################################
+#- name: Ajout du fichier de conf VPN dans le repertoire HOME
+#  copy:
+#    src: "{{ role_path }}/files/openvpn_mobile_client.ovpn"
+#    dest: /etc/skel/openvpn_mobile_client.ovpn
+#    owner: root
+#    group: root
+#    mode: '0777'
+
+# ########################################
+#  Network - Activation NetworkManager
+# ########################################
+- name: Network - Clean
+  command: "rm -rf /etc/netplan/*"
+
+- name: Network - Configuration File
+  template: src=01-netcfg.yaml dest=/etc/netplan/01-netcfg.yaml owner=root mode=0644
+
+- name: Network - Apply
+  command: "{{ item }}"
+  with_items:
+    - netplan generate
+    - netplan apply
+    - systemctl enable NetworkManager.service

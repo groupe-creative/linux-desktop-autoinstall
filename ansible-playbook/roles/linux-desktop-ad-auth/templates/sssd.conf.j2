@@ -1,0 +1,24 @@
+[sssd]
+domains = {{ ldap_domain }}
+config_file_version = 2
+
+[domain/{{ ldap_domain }}]
+default_shell = /bin/bash
+ad_server = {{ ldap_server_ip }}
+krb5_store_password_if_offline = True
+cache_credentials = True
+krb5_realm = {{ ldap_domain|upper }}
+realmd_tags = manages-system joined-with-adcli
+id_provider = ad
+ldap_sasl_authid = {{ pc_name|upper }}$
+# Permet d'avoir un dossier home sans le nom du domaine
+fallback_homedir = /home/%u
+ad_domain = {{ ldap_domain }}
+# Permet de ne pas avoir à se connecter avec un compte du type "p.nom@domaine.local"
+use_fully_qualified_names = False
+ldap_id_mapping = True
+access_provider = ad
+# Permet d'éviter des erreurs système
+ad_gpo_ignore_unreadable = true
+# Permet d'éviter des erreurs système
+ad_gpo_access_control = permissive

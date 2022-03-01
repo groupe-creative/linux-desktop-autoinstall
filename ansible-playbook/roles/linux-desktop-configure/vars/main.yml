@@ -1,0 +1,13 @@
+---
+# Nom du domaine que l'on souhaite résoudre
+# Possibilité d'en déclarer plusieurs "mondomaine.local ~local2 ~local3"
+domain_search: mondomaine.local
+
+# Serveur DNS primaire
+dns_server: x.x.x.x
+
+# Groupe AD d'utilisateurs n'ayant pas besoin de renseigner le mot de passe administrateur
+group_of_users_without_admin_password: Utilisateur_Unix
+
+# Linux GPO Git URL (ex: https://github.com/groupe-creative/linux-gpo)
+linux_gpo_git_url: https://github.com/groupe-creative/linux-gpo.git

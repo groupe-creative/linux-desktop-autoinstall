@@ -1,0 +1,13 @@
+# Test avant installation
+# ansible-playbook -u ubuntu linux-desktop-init.yml --connection=local --extra-vars "pc_name=$pc_name" --list-tasks --list-hosts
+---
+- name: Initialisation PC Ubuntu Desktop
+  hosts: localhost
+  become: yes
+  become_user: root
+  become_method: sudo
+  roles:
+    - { role: update-hostname }
+    - { role: linux-desktop-ad-auth }
+    - { role: linux-desktop-packages }
+    - { role: linux-desktop-configure }

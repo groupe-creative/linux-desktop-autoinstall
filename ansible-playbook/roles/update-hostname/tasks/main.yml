@@ -1,0 +1,13 @@
+---
+# Changement du hostname de la machine
+- name: Changement du hostname de la machine
+  hostname:
+    name: "{{ pc_name }}"
+
+# Ajout du hostname dans le fichier /etc/hosts
+- name: Ajout du hostname dans le fichier /etc/hosts
+  lineinfile:
+    dest: /etc/hosts
+    regexp: '^127\.0\.0\.1[ \t]+localhost'
+    line: '127.0.0.1 localhost {{ pc_name }}'
+    state: present

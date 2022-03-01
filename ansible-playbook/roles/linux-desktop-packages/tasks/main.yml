@@ -1,0 +1,124 @@
+---
+# ########################################
+#  Création de répertoire
+# ########################################
+- name: Create a directory if it does not exist
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0777'
+  with_items:
+    - /tmp/install
+    - /usr/local/lib/docker/cli-plugins
+
+# ########################################
+#  Google Chrome - Ajout Repo APT
+# ########################################
+- name: Google Chrome - Ajout de la clé signé du Repo
+  apt_key:
+    url: https://dl-ssl.google.com/linux/linux_signing_key.pub
+    state: present
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: Google Chrome - Ajout Repo APT
+  apt_repository:
+    repo: deb http://dl.google.com/linux/chrome/deb/ stable main
+    state: present
+    filename: google-chrome
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+
+# ########################################
+#  Teams - Ajout Repo APT
+# ########################################
+- name: Teams - Ajout de la clé signé du Repo
+  apt_key:
+    url: https://packages.microsoft.com/keys/microsoft.asc
+    state: present
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: Teams - Ajout Repo APT
+  apt_repository:
+    repo: deb https://packages.microsoft.com/repos/ms-teams stable main
+    state: present
+    filename: teams
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+# ########################################
+#  TeamViewer - Ajout Repo APT
+# ########################################
+- name: TeamViewer - Ajout de la clé signé du Repo
+  apt_key:
+    url: https://download.teamviewer.com/download/linux/signature/TeamViewer2017.asc
+    state: present
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: TeamViewer - Ajout Repo APT
+  apt_repository:
+    repo: deb https://linux.teamviewer.com/deb stable main
+    state: present
+    filename: teamviewer
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+# ########################################
+#   Mise à jour des Repos APT
+# ########################################
+- name: Mise à jour des Repos APT
+  apt:
+    upgrade: dist
+    update_cache: yes
+
+# ########################################
+#  Redémarrage des services qui en ont besoin
+#  https://www.abyssproject.net/2016/07/automatiser-le-redemarrage-des-services-debian-avec-needrestart-ansible/
+# ########################################
+- name: Redémarrage des services qui en ont besoin
+  command: "needrestart -ra"
+
+# ########################################
+#   Installation des paquets
+# ########################################
+- name: Install Packages for Ubuntu
+  package: name={{ item }} state=latest
+  with_items:
+    - google-chrome-stable
+    - teams
+    - teamviewer
+    - terminator
+    - vim
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+# ########################################
+#  Teams - Fix partage ecran
+# ########################################
+- name: Teams - Fix partage ecran
+  lineinfile:
+    dest: /etc/gdm3/custom.conf
+    regexp: '^#\s*WaylandEnable.*$'
+    line: 'WaylandEnable=false'
+
+# ########################################
+#  Docker - Installation
+# ########################################
+- name: Docker - Installation
+  command: "{{ item }}"
+  args:
+    chdir: /tmp/install/
+  with_items:
+    - curl -fsSL https://get.docker.com -o get-docker.sh
+    - sh get-docker.sh
+    - usermod -aG docker $USER
+    - curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    - chmod +x /usr/local/bin/docker-compose
+    - curl -SL https://github.com/docker/compose/releases/download/v2.2.3/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose
+    - chmod a+x /usr/local/lib/docker/cli-plugins/docker-compose
+
+# ########################################
+#  Docker - Redémarrage
+# ########################################
+- name: Docker - Redémarrage
+  service:
+    name: docker
+    state: restarted
+
+

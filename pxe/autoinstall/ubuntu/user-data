@@ -1,0 +1,94 @@
+#cloud-config
+autoinstall:
+  version: 1
+  # Possibilité de conserver certaines sections en mode "interactif"
+  #  interactive-sections:
+  #    - storage
+  early-commands:
+    - systemctl stop ssh
+  # Changement de la langue
+  keyboard:
+    layout: fr
+  locale: fr_FR.UTF-8
+  # Configuration Réseau
+  network:
+    network:
+      version: 2
+      ethernets:
+        # On recherche les cartes réseaux du type "en*"
+        zz-all-en:
+          match:
+            name: en*
+          dhcp4: true
+          dhcp-identifier: mac
+          nameservers:
+            addresses: [192.168.10.101]
+            search: [domaine.local]
+        # On recherche les cartes réseaux du type "eth*"
+        zz-all-eth:
+          match:
+            name: eth*
+          dhcp4: true
+          dhcp-identifier: mac
+          nameservers:
+            addresses: [192.168.10.101]
+            search: [domaine.local]
+  # Repo APT
+  apt:
+    preserve_sources_list: true
+  # Gestion du partitionnement (on recherche le plus gros disque SSD, on utilise tout l'espace disponible)
+  storage:
+    config:
+      - type: disk
+        id: disk-ssd
+        ptable: gpt
+        wipe: superblock
+        preserve: false
+        name: ''
+        grub_device: false
+        match:
+          ssd: yes
+          size: largest
+      - { device: disk-ssd, size: 1G, wipe: superblock, flag: boot, number: 1,
+          preserve: false, grub_device: true, type: partition, id: partition-0 }
+      - { fstype: fat32, volume: partition-0, preserve: false, type: format, id: format-0 }
+      - { device: disk-ssd, size: 1G, wipe: superblock, flag: '', number: 2,
+          preserve: false, type: partition, id: partition-1 }
+      - { fstype: ext4, volume: partition-1, preserve: false, type: format, id: format-1 }
+      - { device: disk-ssd, size: -1, wipe: superblock, flag: '', number: 3,
+          preserve: false, type: partition, id: partition-2 }
+      - { fstype: ext4, volume: partition-2, preserve: false, type: format, id: format-2 }
+      - { device: format-2, path: /, type: mount, id: mount-2 }
+      - { device: format-1, path: /boot, type: mount, id: mount-1 }
+      - { device: format-0, path: /boot/efi, type: mount, id: mount-0 }
+  # On met à jour les paquets
+  refresh-installer:
+    update: yes
+  # On n'installe pas de serveur SSH
+  ssh:
+    install-server: no
+  # Information d'identification (nom du PC, utilisateur par défaut, etc)
+  identity:
+    hostname: PC000
+    # To generate Password > "openssl passwd -6 -stdin <<< ubuntu"
+    password: "$6$exDY1mhS4KUYCE/2$zmn9ToZwTKLhCw.b4/b.ZRTIZM30JZ4QrOQ2aOXJ8yk96xpcCof0kxKwuX1kqLG/ygbJ1f8wxED22bTL4F46P0"
+    username: ubuntu # root doesn't work
+  # Installation de packages supplémentaires
+  packages:
+    - ubuntu-desktop
+  # Commandes exécutées à la fin de l'installation
+  late-commands:
+    # On télécharge un script qui sera placé sur le bureau de l'utilisateur par défaut pour terminer la configuration du poste
+    - |
+      mkdir -p /target/etc/skel/Bureau/
+      curl -k http://IP_SERVEUR_PXE/finish-install-setup.sh -o /target/etc/skel/Bureau/finish-install-setup.sh
+      chmod 777 /target/etc/skel/Bureau/finish-install-setup.sh
+  # Commandes exécutées au premier démarrage
+  user-data:
+    disable_root: false
+    timezone: Europe/Paris
+    runcmd:
+      - [ apt-get, update ]
+      - [ apt-get, dist-upgrade, --yes ]
+      - [ apt, autoremove, --yes ]
+      - [ reboot ]

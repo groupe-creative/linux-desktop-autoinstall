@@ -1,0 +1,23 @@
+---
+# Nom du domaine auquel on souhaite se connecter
+ldap_domain: mondomaine.local
+
+# Serveur AD IP
+ldap_server_ip: x.x.x.x
+
+# Compte de service pour se connecter à l'AD
+# Il s'agit d'un compte AD avec le droit d'écriture dans l'"Organizational Unit" où sera enregistré le PC
+ldap_username: cs-lnx
+ldap_password: cs-lnx-password
+
+# Nom "complet" du groupe AD administrateurs du domaine
+# Utilisé pour que les administrateurs du domaine puissent se connecter sur tous les postes Linux
+ldap_gods_group_full_name: (memberOf=CN=Super_Admin,OU=Groupe,DC=mondomaine,DC=local)
+# Nom du groupe AD administrateurs du domaine
+ldap_gods_group_short_name: Super_Admin
+
+# Liste des groupes AD qui auront accès aux machines
+# Utilisé pour que les utilisateurs technique puisse se connecter au poste
+ldap_groups_with_access: (memberOf=CN=Utilisateur_Unix,OU=Groupe,DC=mondomaine,DC=local)
+# Liste des "membres" avec accès "sudo". Préfixer avec un "%" pour désigner un groupe AD, sans préfixe pour les utilisateurs de manière nominatives
+ldap_members_with_sudo: ["%Utilisateur_Unix"]

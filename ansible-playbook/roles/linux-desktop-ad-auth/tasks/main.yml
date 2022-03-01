@@ -1,0 +1,70 @@
+---
+
+# ########################################
+#   Installation des paquets APT
+# ########################################
+- name: Install Packages for Ubuntu
+  package: name={{ item }} state=latest
+  with_items:
+    - sssd-ad
+    - sssd-tools
+    - realmd
+    - adcli
+    - packagekit
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+# ########################################
+#   Installation des paquets PIP
+# ########################################
+- name: Install pexpect
+  pip:
+    name: pexpect
+
+# ########################################
+#   Connexion de la VM avec l'AD
+# ########################################
+- name: Join system to AD
+  register: check_ad_result
+  expect:
+    command: /bin/bash -c "/usr/sbin/realm join -U {{ ldap_username }} {{ ldap_domain }}"
+    responses:
+      Password for(.*): "{{ ldap_password }}"
+  failed_when: check_ad_result.rc not in [ 0, 1 ]
+
+# ########################################
+# Création automatique du dossier home de répertoire dans le /home à la connexion
+# ########################################
+- name: Création automatique du dossier home
+  command: pam-auth-update --enable mkhomedir
+
+# ########################################
+#   SSSD configuration
+# ########################################
+- name: Setting SSSD Config - /etc/sssd/sssd.conf
+  template: src=sssd.conf.j2 dest=/etc/sssd/sssd.conf owner=root mode=0600
+
+# ########################################
+#   Start Services + Activation au démarrage
+# ########################################
+- name: Start SSSD and set to start on boot
+  service: name={{ item }} state=restarted enabled=true
+  with_items:
+    - sssd
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+# ########################################
+# Mise à jour "/etc/sudoers"
+# Vérifie que les lignes contenant "regexp" sont bien présentes
+# Ajoute la ligne si nécessaire, valide le fichier
+# Pour une authentification avec mot de passe:
+# > %<groupe> ALL=(ALL:ALL) ALL
+# ########################################
+- lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: '^{{ item }} ALL='
+    line: '{{ item }} ALL=(ALL) NOPASSWD: ALL'
+    validate: '/usr/sbin/visudo -cf %s'
+  with_items:
+    - '%{{ ldap_gods_group_short_name }}'
+    - "{{ ldap_members_with_sudo }}"
