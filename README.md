@@ -2,7 +2,7 @@
 
 Ce projet contient les éléments nécessaires pour automatiser l'installation d'Ubuntu Desktop en entreprise.
 
-Il fait partie intégrante d'un article dédié à ce sujet : https://blog.groupe-creative.fr/deployer-des-postes-de-dev-ubuntu/
+Il fait partie intégrante d'un article dédié à ce sujet : https://blog.groupe-creative.fr/deployer-des-postes-techniques-sous-linux-en-entreprise/
 
 ## Partie 1 - Installation automatisée d'Ubuntu Desktop
 
