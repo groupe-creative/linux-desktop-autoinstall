@@ -29,44 +29,44 @@
   with_items:
     - "{{ language_packages_list.stdout.split() }}"
 
-# ########################################
-#  GPO System - Check
-# ########################################
-- name: GPO System - Check
-  stat:
-    path: /root/gpo/linux-gpo
-  register: linux_gpo_folder_result
-
-# ########################################
-#  GPO System - Download (if need)
-# ########################################
-- name: GPO System - Download (if need)
-  git:
-    repo: "{{ linux_gpo_git_url }}"
-    dest: /root/gpo/linux-gpo
-    version: main
-    clone: yes
-    update: yes
-  when: not linux_gpo_folder_result.stat.exists
-
-# ########################################
-#  GPO System - Install
-# ########################################
-- name: GPO System - Install
-  command: "{{ item }}"
-  with_items:
-    - /root/gpo/linux-gpo/gpo-update.sh
-    - /root/gpo/linux-gpo/gpo-apply.sh
-
-# ########################################
-#  GPO System - Cron Purge Logs
-# ########################################
-- name: GPO System - Cron Purge Logs
-  cron:
-    name: "GPO System - Cron Purge Logs"
-    minute: "0"
-    hour: "10"
-    job: "find /root/gpo/logs/ -name '*.log' -type f -mtime +15 -delete 2> /dev/null"
+## ########################################
+##  GPO System - Check
+## ########################################
+#- name: GPO System - Check
+#  stat:
+#    path: /root/gpo/linux-gpo
+#  register: linux_gpo_folder_result
+#
+## ########################################
+##  GPO System - Download (if need)
+## ########################################
+#- name: GPO System - Download (if need)
+#  git:
+#    repo: "{{ linux_gpo_git_url }}"
+#    dest: /root/gpo/linux-gpo
+#    version: main
+#    clone: yes
+#    update: yes
+#  when: not linux_gpo_folder_result.stat.exists
+#
+## ########################################
+##  GPO System - Install
+## ########################################
+#- name: GPO System - Install
+#  command: "{{ item }}"
+#  with_items:
+#    - /root/gpo/linux-gpo/gpo-update.sh
+#    - /root/gpo/linux-gpo/gpo-apply.sh
+#
+## ########################################
+##  GPO System - Cron Purge Logs
+## ########################################
+#- name: GPO System - Cron Purge Logs
+#  cron:
+#    name: "GPO System - Cron Purge Logs"
+#    minute: "0"
+#    hour: "10"
+#    job: "find /root/gpo/logs/ -name '*.log' -type f -mtime +15 -delete 2> /dev/null"
 
 # ########################################
 #  Désactivation de la demande de mot passe administrateur
